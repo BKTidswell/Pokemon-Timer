@@ -1,5 +1,4 @@
 
-
 class Pkmn_Data:
 	def __init__(self,species,evolution_lvl,evolution,min_lvl,max_lvl,rarity,catch_rate,loc,img):
 		self.species = species
@@ -61,4 +60,4 @@ for pkmn in pkmn_info_array:
 		pkmn_env[pkmn[7]][0].append(pkmn[0])
 		pkmn_env[pkmn[7]][1].append(pkmn[5])
 
-
+caughtPokemon = []

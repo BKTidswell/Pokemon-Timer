@@ -2,8 +2,9 @@
 import tkinter as tk
 from random import *
 from PIL import Image, ImageTk
-import time
+import time, os
 from pkmn_library import *
+import pickle
 
 start_seconds = 360
 timer = "{m}:{s}"
@@ -29,24 +30,49 @@ env_options = [
 ]
 
 size = (100,100)
+smallSize = (50,50)
 
+boxCols = 4
+boxRows = 4
+pkmnPerBox = boxCols*boxRows
 
-def createImageLabels(imagePaths):
+def createImageLabels(imagePaths,imSize):
 	images = []
 	photos = []
 	imageLabels = []
 
 	for i,im in enumerate(imagePaths):
 		images.append(Image.open(im))
-		images[i].thumbnail(size,Image.ANTIALIAS)
+		images[i].thumbnail(imSize,Image.ANTIALIAS)
 		photos.append(ImageTk.PhotoImage(images[i]))
 		imageLabels.append(tk.Label(image = photos[i]))
 		imageLabels[i].image = photos[i]
 
 	return imageLabels
 
-def addToCaught(pkmnCaught):
+def addToCaught(pkmn):
+	caughtPokemon.append(Pkmn_Captured(pkmn.species,
+									   pkmn.species,
+									   randint(pkmn.minLvl,pkmn.maxLvl),
+									   False,
+									   False,
+									   pkmn.img))
 	
+def savePkmn():
+	with open('savefile.dat', 'wb') as f:
+		pickle.dump(caughtPokemon, f, protocol=2)
+
+
+def loadPkmn():
+	with open('savefile.dat', 'rb') as f:
+		caughtPokemon = pickle.load(f)
+
+	return caughtPokemon
+
+if os.path.exists("savefile.dat"):
+	print("here")
+	caughtPokemon = loadPkmn()
+	print(caughtPokemon)
 
 class App():
 
@@ -60,9 +86,9 @@ class App():
 		for i in range(4):
 			self.root.grid_columnconfigure(i,  weight =1)
 
-		title = tk.Label(text="Pokemon Timer")
-		title.grid(column=0, row = 0, columnspan = 4)
-		title.config(anchor="center")
+		self.title = tk.Label(text="Pokemon Timer")
+		self.title.grid(column=0, row = 0, columnspan = 4)
+		self.title.config(anchor="center")
 
 		self.timer_text = tk.Label(text="")
 		self.catchText = tk.Label(text="")
@@ -84,14 +110,16 @@ class App():
 		self.backButton = tk.Button(text='Run Away', command=self.MainPage)
 		self.catchButton = tk.Button(text='Catch!', command=self.catchPkmn)
 
+		self.boxButton = tk.Button(text='Boxes', command= lambda: self.BoxesPage(0))
+
 		self._job = None
 		self.env_label = None
 
 		env_path = "Pokemon_Smile_Envs/{}.png".format(self.explore_env.get())
-		self.env_label = createImageLabels([env_path])[0]
+		self.env_label = createImageLabels([env_path],size)[0]
 
 		pkmn_path = "Pokemon_Smile_Pokemon/{}.png".format("001")
-		self.pkmn_label = createImageLabels([pkmn_path])[0]
+		self.pkmn_label = createImageLabels([pkmn_path],size)[0]
 
 		self.MainPage()
 
@@ -104,7 +132,7 @@ class App():
 			pkmn_num = str(randint(1,151)).zfill(3)
 			pkmn_imgs.append("Pokemon_Smile_Pokemon/{}.png".format(pkmn_num))
 			
-		self.img_labels = createImageLabels(pkmn_imgs)
+		self.img_labels = createImageLabels(pkmn_imgs,size)
 
 		for i,im in enumerate(self.img_labels):
 			im.grid(row = 1, column = i)
@@ -122,6 +150,11 @@ class App():
 		self.button1.grid(column=0, row = 4, columnspan = 4)
 		self.button1.config(anchor="center")
 
+		self.boxButton.grid(column=3, row = 5, columnspan = 1)
+		self.button1.config(anchor="center")
+
+		self.title.grid(column=0, row = 0, columnspan = 4)
+
 		self.catchText.grid_forget()
 		self.backButton.grid_forget()
 		self.pkmn_label.grid_forget()
@@ -130,11 +163,7 @@ class App():
 
 	def TimerPage(self):
 		env_path = "Pokemon_Smile_Envs/{}.png".format(self.explore_env.get())
-		env_img = Image.open(env_path)
-		env_img.thumbnail(size,Image.ANTIALIAS)
-		env_photos = ImageTk.PhotoImage(env_img)
-		self.env_label = tk.Label(image = env_photos)
-		self.env_label.image = env_photos
+		self.env_label = createImageLabels([env_path],size)[0]
 
 		for im in self.img_labels:
 			im.grid_forget()
@@ -155,6 +184,8 @@ class App():
 
 		self.button3.grid(column=0, row = 3, columnspan = 2)
 		self.button3.config(anchor="center")
+
+		self.boxButton.grid_forget()
 
 	def CatchPage(self):
 		self.timer_text.grid_forget()
@@ -184,6 +215,32 @@ class App():
 		self.backButton.grid(column=0, row = 3)
 		self.catchButton.grid(column=1, row = 3)
 		
+	def BoxesPage(self,boxNum):
+
+		#Only get a list of the next 16
+		pkmn_imgs = ["Pokemon_Smile_Pokemon/{}.png".format(pkmn.img) for pkmn in caughtPokemon[boxNum*pkmnPerBox:((boxNum+1)*pkmnPerBox)-1]]
+
+		self.boxImages = createImageLabels(pkmn_imgs,smallSize)
+
+		for i,im in enumerate(self.boxImages):
+			#Make it a 4 by 4 grid
+			col = (i%boxRows)
+			row = int(i/boxCols)
+
+			im.grid(row = row+1, column = col+1)
+
+		self.backButton.configure(text="Back")
+		self.backButton.grid(column=0, row = 0)
+
+		self.time_selector.grid_forget()
+		self.env_selector.grid_forget()
+		self.button1.grid_forget()
+
+		self.title.grid(column=1, row = 0, columnspan = 4)
+
+		for im in self.img_labels:
+			im.grid_forget()
+		self.boxButton.grid_forget()
 
 	def cancel(self):
 		if self._job is not None:
@@ -221,8 +278,10 @@ class App():
 		self.timer_text.configure(text="Timer Ended")
 
 	def catchPkmn(self):
-		if randint(0,100) - int(self.timer_mins.get()[0:2]) < self.pkmn_found_class.catch_rate:
+		if True: #randint(0,100) - int(self.timer_mins.get()[0:2]) < self.pkmn_found_class.catch_rate:
 			self.catchText.configure(text="You caught the {}!".format(self.pkmn_found_class.species))
+			addToCaught(self.pkmn_found_class)
+			savePkmn()
 		else:
 			self.catchText.configure(text="The {} got away...".format(self.pkmn_found_class.species))
 
