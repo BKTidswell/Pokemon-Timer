@@ -6,6 +6,7 @@ import time, os, sys
 from pkmn_library import *
 import pickle
 from functools import partial
+from datetime import date
 
 timer = "{m}:{s}"
 
@@ -30,6 +31,16 @@ env_options = [
 #"Mountain",
 #"Town",
 "Volcano",
+]
+
+#Sort Options 
+sort_options = [
+"Old to New",
+"New to Old",
+"High to Low",
+"Low to High",
+"A to Z",
+"Z to A"
 ]
 
 #Set Background color
@@ -70,11 +81,13 @@ def createImageLabels(imagePaths,imSize):
 
 #This adds a Pokemon to the caught list
 def addToCaught(pkmn):
+	today = date.today()
 	caughtPokemon.append(Pkmn_Captured(pkmn.species,
 									   pkmn.species,
 									   randint(pkmn.minLvl,pkmn.maxLvl),
 									   False,
 									   False,
+									   today.strftime("%m/%d/%y"),
 									   pkmn.img))
 
 #Makes the save file	
@@ -111,12 +124,8 @@ if os.path.exists("save.ini"):
 #	General:
 #		Make a Pause Button
 #		Make ability to sort pokemon
-#		Make sizing work evenly
 
 #	Pokemon:
-#		Zoom in to see pokemon details
-#		Favorite Pokemon
-#			Make favorites appear as the 4
 #		Add Evolution
 
 #	Evolution:
@@ -134,6 +143,8 @@ class App():
 	def __init__(self):
 
 		self.favePokemon = makeFavs()
+
+		self.makeSortedPkmn()
 
 		self.root = tk.Tk()
 		self.root.title('Pokemon Timer')
@@ -168,6 +179,10 @@ class App():
 		self.explore_env = tk.StringVar()
 		self.explore_env.set(env_options[0])
 
+		#Create the varible to set the sorting variable
+		self.pkmn_sort = tk.StringVar()
+		self.pkmn_sort.set(sort_options[0])
+
 		#Makes an option menu to choose your times
 		self.time_selector = tk.OptionMenu(self.root, self.timer_mins, *timer_options)
 		self.time_selector.config(bg=bgColor)
@@ -175,6 +190,10 @@ class App():
 		#Makes an option menu to choose your environment
 		self.env_selector = tk.OptionMenu(self.root, self.explore_env, *env_options)
 		self.env_selector.config(bg=bgColor)
+
+		#Makes an option menu to choose sorting
+		self.sort_selector = tk.OptionMenu(self.root, self.pkmn_sort, *sort_options, command=partial(self.BoxesPage,0))
+		self.sort_selector.config(bg=bgColor)
 		
 		#Makes the buttons to start, cancel, and restart the timer
 		self.startButton = tk.Button(text='Start Timer', command=self.getStartTime, highlightbackground=bgColor)
@@ -209,6 +228,8 @@ class App():
 		self.levelText.config(font=("Arial", 20))
 		self.favText = tk.Label(text="Favorite: {}", bg=bgColor)
 		self.favText.config(font=("Arial", 20))
+		self.dateText = tk.Label(text="Date Caught: {}", bg=bgColor)
+		self.dateText.config(font=("Arial", 20))
 
 		#Makes the envionment image so it can be removed on the Main page
 		env_path = "Pokemon_Smile_Envs/{}.png".format(self.explore_env.get())
@@ -289,6 +310,8 @@ class App():
 
 		self.boxBackButton.grid_forget()
 		self.boxNextButton.grid_forget()
+		self.sort_selector.grid_forget()
+
 
 	def TimerPage(self):
 		#Creates the environment image to show
@@ -320,6 +343,7 @@ class App():
 		self.env_selector.grid_forget()
 		self.startButton.grid_forget()
 		self.boxButton.grid_forget()
+
 
 	def CatchPage(self):
 		#Get the environment name
@@ -356,8 +380,8 @@ class App():
 		self.envLabel.grid_forget()
 		self.cancelButton.grid_forget()
 		self.restartButton.grid_forget()
-	
-	def BoxesPage(self,boxNum):
+
+	def BoxesPage(self,boxNum,*args):
 		#Remove pokemon box images first so they reset when going from one box to another
 		for im in self.boxImages:
 			im.grid_forget()
@@ -370,7 +394,8 @@ class App():
 		if (boxNum+1)*pkmnPerBox < len(caughtPokemon):
 			self.boxNextButton.configure(text='>', command= lambda: self.BoxesPage(boxNum+1))
 
-		currentBox = caughtPokemon[boxNum*pkmnPerBox:((boxNum+1)*pkmnPerBox)]
+		#Selected the current box based on sort preferences
+		currentBox = self.sortingDict[self.pkmn_sort.get()][boxNum*pkmnPerBox:((boxNum+1)*pkmnPerBox)]
 
 		#Only get a list of the next 16 and make them into images
 		pkmnImgs = ["Pokemon_Smile_Pokemon/{}.png".format(pkmn.img) for pkmn in currentBox]
@@ -384,6 +409,7 @@ class App():
 			row = int(i/boxRows)
 
 			im.grid(row = row+1, column = col+1)
+			#Lower to make under pokemon pngs
 			im.lower()
 
 		#Add pokemon images by rows and columns 
@@ -395,6 +421,10 @@ class App():
 
 			#Bind each image so that when clicked they go to their own page
 			self.boxImages[i].bind("<Button>",partial(self.PokemonPage, currentBox[i], boxNum))
+
+		#Adds the sort button
+		self.sort_selector.grid(column = maxGridCols, row = 0)
+		self.sort_selector.config(anchor="center")
 
 		#Makes the button back say "Back" and adds it
 		self.backButton.configure(text="Back")
@@ -418,19 +448,21 @@ class App():
 		self.currentPkmn.grid_forget()
 		self.currentBox.grid_forget()
 		self.favText.grid_forget()
+		self.dateText.grid_forget()
 
 		for im in self.imgLabels:
 			im.grid_forget()
 		
 	def PokemonPage(self,pkmn,boxNum,*args):
-		self.title.configure(text="{}".format(pkmn.name))
-
+		#Makes the back button go back to the box
 		self.boxBackButton.configure(text='<', command= lambda: self.BoxesPage(boxNum))
 		self.boxBackButton.grid(row = 0, column = 0)
 
+		#Get the pokemon and a box around it
 		self.currentPkmn = createImageLabels(["Pokemon_Smile_Pokemon/{}.png".format(pkmn.img)],size)[0]
 		self.currentBox = createImageLabels(["Pokemon_Smile_Envs/Pokemon_Box.png"],boxSize)[0]
 
+		#Place the box and lower it, then place the pokemon 
 		self.currentBox.grid(row = 1, column = 1, rowspan=6, columnspan=4)
 		self.currentBox.lower()
 		self.currentBox.config(anchor="center")
@@ -438,25 +470,31 @@ class App():
 		self.currentPkmn.grid(row = 1, column = 1, rowspan=6, columnspan=4)
 		self.currentPkmn.config(anchor="center")
 
+		#Get character if it is a favorite or not
 		if pkmn.favorite:
 			favChar = "✓"
 		else:
 			favChar = "X"
 
+		#Add the name, level, favorite, and date caught
 		self.nameText.config(text="Name: {}".format(pkmn.name))
-		self.nameText.grid(row = 1, column = 5, rowspan=2, columnspan=4, sticky="w")
+		self.nameText.grid(row = 1, column = 5, columnspan=4, sticky="w")
 
 		self.levelText.config(text="Level: {}".format(pkmn.level))
-		self.levelText.grid(row = 3, column = 5, rowspan=2, columnspan=4, sticky="w")
+		self.levelText.grid(row = 2, column = 5,columnspan=4, sticky="w")
 
 		self.favText.config(text="Favorite: {}".format(favChar))
-		self.favText.grid(row = 5, column = 5, rowspan=2, columnspan=4, sticky="w")
+		self.favText.grid(row = 3, column = 5, columnspan=4, sticky="w")
 		self.favText.bind("<Button>",partial(self.makeFav, pkmn))
+
+		self.dateText.config(text="Date Caught: {}".format(pkmn.caughtDate))
+		self.dateText.grid(row = 4, column = 5, columnspan=4, sticky="w")
 
 		#Remove all the many things that are not on this page
 		self.boxNextButton.grid_forget()
 		self.backButton.grid_forget()
 		self.title.grid_forget()
+		self.sort_selector.grid_forget()
 
 		for im in self.boxImages:
 			im.grid_forget()
@@ -519,6 +557,20 @@ class App():
 		self.favePokemon = makeFavs()
 		savePkmn()
 
+	def makeSortedPkmn(self):
+		pkmnOldToNew = caughtPokemon
+		pkmnNewToOld = list(reversed(caughtPokemon))
+
+		pkmnLowToHigh = sorted(caughtPokemon, key=lambda x: x.level)
+		pkmnHighToLow = list(reversed(pkmnLowToHigh))
+
+		pkmnAToZ = sorted(caughtPokemon, key=lambda x: x.name)
+		pkmnZToA = list(reversed(pkmnAToZ))
+
+		self.sortingDict = {"Old to New":pkmnOldToNew,"New to Old":pkmnNewToOld,
+							"High to Low":pkmnHighToLow,"Low to High":pkmnLowToHigh,
+							"A to Z":pkmnAToZ,"Z to A":pkmnZToA}
+
 	def catchPkmn(self):
 		#If you get a value under their catch rate
 
@@ -528,6 +580,7 @@ class App():
 			self.catchText.configure(text="You caught the {}!".format(self.pkmn_found_class.species))
 			addToCaught(self.pkmn_found_class)
 			savePkmn()
+			self.makeSortedPkmn()
 		else:
 			#Say that it got away
 			self.catchText.configure(text="The {} got away...".format(self.pkmn_found_class.species))

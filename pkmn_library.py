@@ -13,12 +13,13 @@ class Pkmn_Data:
 
 
 class Pkmn_Captured:
-	def __init__(self,name,species,level,favorite,can_evolve,img):
+	def __init__(self,name,species,level,favorite,can_evolve,date,img):
 		self.name = name
 		self.species = species
 		self.level = level
 		self.can_evolve = can_evolve
 		self.favorite = favorite
+		self.caughtDate = date
 		self.img = img
 
 #Common-ness
