@@ -121,10 +121,6 @@ if os.path.exists("save.ini"):
 
 
 #To Do:
-#	General:
-#		Make a Pause Button
-#		Make ability to sort pokemon
-
 #	Pokemon:
 #		Add Evolution
 
@@ -197,6 +193,7 @@ class App():
 		
 		#Makes the buttons to start, cancel, and restart the timer
 		self.startButton = tk.Button(text='Start Timer', command=self.getStartTime, highlightbackground=bgColor)
+		self.pauseButton = tk.Button(text='Pause Timer', command=self.PauseTimer, highlightbackground=bgColor)
 		self.cancelButton = tk.Button(text='Cancel Timer', command=self.endTimer, highlightbackground=bgColor)
 		self.restartButton = tk.Button(text='Restart Timer', command=self.getStartTime, highlightbackground=bgColor)
 
@@ -215,6 +212,7 @@ class App():
 		#Makes job for timer so it can be stopped
 		#Honestly it's funny how little of this is about the timer lol
 		self._job = None
+		self.paused = False
 
 		#Make place holder for box images and env label so they can be removed on the Main page
 		self.envLabel = None
@@ -250,7 +248,6 @@ class App():
 		self.root.mainloop()
 
 	def MainPage(self):
-
 		#Creates the array for the images
 		pkmnImgs = []
 
@@ -301,6 +298,7 @@ class App():
 		self.pkmn_label.grid_forget()
 		self.cancelButton.grid_forget()
 		self.restartButton.grid_forget()
+		self.pauseButton.grid_forget()
 
 		for im in self.boxImages:
 			im.grid_forget()
@@ -327,11 +325,15 @@ class App():
 		self.envLabel.config(anchor="center")
 
 		#Adds the restart button to the page
-		self.restartButton.grid(column=0, row = 3, columnspan = int(maxGridCols/2))
+		self.restartButton.grid(column=0, row = 3, columnspan = 3)
 		self.restartButton.config(anchor="center")
 
+		#Adds button to pause the timer
+		self.pauseButton.grid(column=4, row = 3, columnspan = 1)
+		self.pauseButton.config(anchor="center")
+
 		#Adds the cancel button to the page
-		self.cancelButton.grid(column=int(maxGridCols/2), row = 3, columnspan = int(maxGridCols/2))
+		self.cancelButton.grid(column=5, row = 3, columnspan = 3)
 		self.cancelButton.config(anchor="center")
 		
 		#Remove all the many things that are not on this page
@@ -380,6 +382,7 @@ class App():
 		self.envLabel.grid_forget()
 		self.cancelButton.grid_forget()
 		self.restartButton.grid_forget()
+		self.pauseButton.grid_forget()
 
 	def BoxesPage(self,boxNum,*args):
 		#Remove pokemon box images first so they reset when going from one box to another
@@ -517,7 +520,11 @@ class App():
 		self.timerText.configure(text=time_left)
 
 		if timer_seconds > 0:
-			 self._job = self.root.after(1000, self.update_clock, timer_seconds-1)
+			#If paused do not reduce clock time
+			if self.paused:
+				self._job = self.root.after(1000, self.update_clock, timer_seconds)
+			else:
+			 	self._job = self.root.after(1000, self.update_clock, timer_seconds-1)
 		else:
 			self.cancel()
 
@@ -537,6 +544,9 @@ class App():
 		#Now is seconds not minutes
 		#REMOVE IN FULL
 		self.update_clock(int(self.timer_mins.get()[0:2]))
+
+	def PauseTimer(self):
+		self.paused = not self.paused
 
 	#Cancels the time, goes to main page
 	def endTimer(self):
