@@ -7,6 +7,8 @@ from pkmn_library import *
 import pickle
 from functools import partial
 from datetime import date
+import os
+from playsound import playsound
 
 timer = "{m}:{s}"
 
@@ -144,7 +146,7 @@ class App():
 
 		self.root = tk.Tk()
 		self.root.title('Pokemon Timer')
-		#self.root.resizable(height = 0, width = 0)
+		self.root.resizable(height = 0, width = 0)
 		self.root.configure(bg=bgColor)
 
 		#Set weights on all grids and rows in order to allow for resizing
@@ -299,6 +301,7 @@ class App():
 		self.cancelButton.grid_forget()
 		self.restartButton.grid_forget()
 		self.pauseButton.grid_forget()
+		self.catchButton.grid_forget()
 
 		for im in self.boxImages:
 			im.grid_forget()
@@ -387,6 +390,9 @@ class App():
 	def BoxesPage(self,boxNum,*args):
 		#Remove pokemon box images first so they reset when going from one box to another
 		for im in self.boxImages:
+			im.grid_forget()
+
+		for im in self.boxOutImages:
 			im.grid_forget()
 
 		#If this is not the first box then make a back button to the back before this
@@ -526,7 +532,7 @@ class App():
 			else:
 			 	self._job = self.root.after(1000, self.update_clock, timer_seconds-1)
 		else:
-			self.cancel()
+			playsound('chime.mp3')
 
 			#Only Long Timers get to catch, not in testing tho
 
