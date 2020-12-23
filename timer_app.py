@@ -2,9 +2,10 @@
 import tkinter as tk
 from random import *
 from PIL import Image, ImageTk
-import time, os
+import time, os, sys
 from pkmn_library import *
 import pickle
+from functools import partial
 
 timer = "{m}:{s}"
 
@@ -37,6 +38,10 @@ bgColor = "white"
 #Set size of images and box images
 size = (100,100)
 smallSize = (50,50)
+
+boxSize = (110,110)
+smallBoxSize = (60,60)
+
 
 #Set number of box rows and columns
 boxCols = 6
@@ -80,9 +85,22 @@ def savePkmn():
 #loads the save file
 def loadPkmn():
 	with open('save.ini', 'rb') as f:
-		caughtPokemon = pickle.load(f)
-
+		try:
+			caughtPokemon = pickle.load(f)
+		except EOFError:
+			caughtPokemon = []
+		
 	return caughtPokemon
+
+def makeFavs():
+	favPokemon = []
+
+	for pkmn in caughtPokemon:
+		if pkmn.favorite:
+			favPokemon.append(pkmn)
+
+	return(favPokemon)
+
 
 #If there is a save file load it
 if os.path.exists("save.ini"):
@@ -114,6 +132,8 @@ if os.path.exists("save.ini"):
 class App():
 
 	def __init__(self):
+
+		self.favePokemon = makeFavs()
 
 		self.root = tk.Tk()
 		self.root.title('Pokemon Timer')
@@ -166,20 +186,29 @@ class App():
 		self.catchButton = tk.Button(text='Catch!', command=self.catchPkmn, highlightbackground=bgColor)
 
 		#Create the button to go to the first box page
-		self.boxButton = tk.Button(text='Boxes', command= lambda: self.BoxesPage(0), highlightbackground=bgColor)
+		self.boxButton = tk.Button(text='Boxes', command=lambda: self.BoxesPage(0), highlightbackground=bgColor)
 
 		#Make the other buttons to go to other box pages
 		# They start at 0 but need a placeholder here
-		self.boxBackButton = tk.Button(text='<', command= lambda: self.BoxesPage(0), highlightbackground=bgColor)
-		self.boxNextButton = tk.Button(text='>', command= lambda: self.BoxesPage(0), highlightbackground=bgColor)
+		self.boxBackButton = tk.Button(text='<', command=lambda: self.BoxesPage(0), highlightbackground=bgColor)
+		self.boxNextButton = tk.Button(text='>', command=lambda: self.BoxesPage(0), highlightbackground=bgColor)
 
 		#Makes job for timer so it can be stopped
 		#Honestly it's funny how little of this is about the timer lol
 		self._job = None
 
-		#Make fodler for box images and env label so they can be removed on the Main page
+		#Make place holder for box images and env label so they can be removed on the Main page
 		self.envLabel = None
 		self.boxImages = []
+		self.boxOutImages = []
+
+		#Make labels for pokemon details
+		self.nameText = tk.Label(text="Name: {}", bg=bgColor)
+		self.nameText.config(font=("Arial", 20))
+		self.levelText = tk.Label(text="Level: {}", bg=bgColor)
+		self.levelText.config(font=("Arial", 20))
+		self.favText = tk.Label(text="Favorite: {}", bg=bgColor)
+		self.favText.config(font=("Arial", 20))
 
 		#Makes the envionment image so it can be removed on the Main page
 		env_path = "Pokemon_Smile_Envs/{}.png".format(self.explore_env.get())
@@ -188,6 +217,10 @@ class App():
 		#Makes the found pokemon image so it can be removed on the Main page
 		pkmn_path = "Pokemon_Smile_Pokemon/{}.png".format("001")
 		self.pkmn_label = createImageLabels([pkmn_path],size)[0]
+
+		#Make pokemon details so they can be removed
+		self.currentPkmn = createImageLabels(["Pokemon_Smile_Pokemon/{}.png".format("001")],size)[0]
+		self.currentBox = createImageLabels(["Pokemon_Smile_Envs/Pokemon_Box.png"],boxSize)[0]
 
 		#Go to the main page
 		self.MainPage()
@@ -200,8 +233,15 @@ class App():
 		#Creates the array for the images
 		pkmnImgs = []
 
+		#Get up to 4 of the favorite pokemon
+		favChoices = sample(self.favePokemon, k=min(4,len(self.favePokemon)) )
+
+		#Add each of those to the list of paths to choose
+		for fav in favChoices:
+			pkmnImgs.append("Pokemon_Smile_Pokemon/{}.png".format(fav.img))
+
 		#Randomly generate the pokemon numbers and then makes the labels of them
-		for i in range(4):
+		for i in range( max(0,4-len(favChoices)) ):
 			pkmn_num = str(randint(1,151)).zfill(3)
 			pkmnImgs.append("Pokemon_Smile_Pokemon/{}.png".format(pkmn_num))
 			
@@ -242,6 +282,9 @@ class App():
 		self.restartButton.grid_forget()
 
 		for im in self.boxImages:
+			im.grid_forget()
+
+		for im in self.boxOutImages:
 			im.grid_forget()
 
 		self.boxBackButton.grid_forget()
@@ -313,7 +356,7 @@ class App():
 		self.envLabel.grid_forget()
 		self.cancelButton.grid_forget()
 		self.restartButton.grid_forget()
-		
+	
 	def BoxesPage(self,boxNum):
 		#Remove pokemon box images first so they reset when going from one box to another
 		for im in self.boxImages:
@@ -327,9 +370,21 @@ class App():
 		if (boxNum+1)*pkmnPerBox < len(caughtPokemon):
 			self.boxNextButton.configure(text='>', command= lambda: self.BoxesPage(boxNum+1))
 
+		currentBox = caughtPokemon[boxNum*pkmnPerBox:((boxNum+1)*pkmnPerBox)]
+
 		#Only get a list of the next 16 and make them into images
-		pkmnImgs = ["Pokemon_Smile_Pokemon/{}.png".format(pkmn.img) for pkmn in caughtPokemon[boxNum*pkmnPerBox:((boxNum+1)*pkmnPerBox)]]
+		pkmnImgs = ["Pokemon_Smile_Pokemon/{}.png".format(pkmn.img) for pkmn in currentBox]
 		self.boxImages = createImageLabels(pkmnImgs,smallSize)
+
+		boxOutImgs = ["Pokemon_Smile_Envs/Pokemon_Box.png" for x in range(pkmnPerBox)]
+		self.boxOutImages = createImageLabels(boxOutImgs,smallBoxSize)
+
+		for i,im in enumerate(self.boxOutImages):
+			col = (i%boxCols)
+			row = int(i/boxRows)
+
+			im.grid(row = row+1, column = col+1)
+			im.lower()
 
 		#Add pokemon images by rows and columns 
 		for i,im in enumerate(self.boxImages):
@@ -337,6 +392,9 @@ class App():
 			row = int(i/boxRows)
 
 			im.grid(row = row+1, column = col+1)
+
+			#Bind each image so that when clicked they go to their own page
+			self.boxImages[i].bind("<Button>",partial(self.PokemonPage, currentBox[i], boxNum))
 
 		#Makes the button back say "Back" and adds it
 		self.backButton.configure(text="Back")
@@ -355,10 +413,57 @@ class App():
 		self.env_selector.grid_forget()
 		self.startButton.grid_forget()
 		self.boxButton.grid_forget()
+		self.nameText.grid_forget()
+		self.levelText.grid_forget()
+		self.currentPkmn.grid_forget()
+		self.currentBox.grid_forget()
+		self.favText.grid_forget()
 
 		for im in self.imgLabels:
 			im.grid_forget()
 		
+	def PokemonPage(self,pkmn,boxNum,*args):
+		self.title.configure(text="{}".format(pkmn.name))
+
+		self.boxBackButton.configure(text='<', command= lambda: self.BoxesPage(boxNum))
+		self.boxBackButton.grid(row = 0, column = 0)
+
+		self.currentPkmn = createImageLabels(["Pokemon_Smile_Pokemon/{}.png".format(pkmn.img)],size)[0]
+		self.currentBox = createImageLabels(["Pokemon_Smile_Envs/Pokemon_Box.png"],boxSize)[0]
+
+		self.currentBox.grid(row = 1, column = 1, rowspan=6, columnspan=4)
+		self.currentBox.lower()
+		self.currentBox.config(anchor="center")
+
+		self.currentPkmn.grid(row = 1, column = 1, rowspan=6, columnspan=4)
+		self.currentPkmn.config(anchor="center")
+
+		if pkmn.favorite:
+			favChar = "✓"
+		else:
+			favChar = "X"
+
+		self.nameText.config(text="Name: {}".format(pkmn.name))
+		self.nameText.grid(row = 1, column = 5, rowspan=2, columnspan=4, sticky="w")
+
+		self.levelText.config(text="Level: {}".format(pkmn.level))
+		self.levelText.grid(row = 3, column = 5, rowspan=2, columnspan=4, sticky="w")
+
+		self.favText.config(text="Favorite: {}".format(favChar))
+		self.favText.grid(row = 5, column = 5, rowspan=2, columnspan=4, sticky="w")
+		self.favText.bind("<Button>",partial(self.makeFav, pkmn))
+
+		#Remove all the many things that are not on this page
+		self.boxNextButton.grid_forget()
+		self.backButton.grid_forget()
+		self.title.grid_forget()
+
+		for im in self.boxImages:
+			im.grid_forget()
+
+		for im in self.boxOutImages:
+			im.grid_forget()
+
 	#Cancels the current timer
 	def cancel(self):
 		if self._job is not None:
@@ -400,6 +505,19 @@ class App():
 		self.cancel()
 		self.MainPage() 
 		self.timerText.configure(text="Timer Ended")
+
+	def makeFav(self,pkmn,*args):
+		pkmn.favorite = not pkmn.favorite
+
+		if pkmn.favorite:
+			favChar = "✓"
+		else:
+			favChar = "X"
+
+		self.favText.config(text="Favorite: {}".format(favChar))
+
+		self.favePokemon = makeFavs()
+		savePkmn()
 
 	def catchPkmn(self):
 		#If you get a value under their catch rate
