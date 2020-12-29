@@ -61,4 +61,6 @@ for pkmn in pkmn_info_array:
 		pkmn_env[pkmn[7]][0].append(pkmn[0])
 		pkmn_env[pkmn[7]][1].append(pkmn[5])
 
+
 caughtPokemon = []
+candy = 100

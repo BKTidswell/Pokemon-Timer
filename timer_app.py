@@ -104,20 +104,22 @@ def evolvePkmn(pkmn):
 	pkmn.species = evolvedForm.species
 	pkmn.img = evolvedForm.img
 
+def lvlUpPkmn(pkmn):
+
 #Makes the save file	
 def savePkmn():
 	with open('save.ini', 'wb') as f:
-		pickle.dump(caughtPokemon, f, protocol=2)
+		pickle.dump([candy, caughtPokemon], f, protocol=2)
 
 #loads the save file
 def loadPkmn():
 	with open('save.ini', 'rb') as f:
 		try:
-			caughtPokemon = pickle.load(f)
+			candy, caughtPokemon = pickle.load(f)
 		except EOFError:
-			caughtPokemon = []
+			candy, caughtPokemon = []
 		
-	return caughtPokemon
+	return candy, caughtPokemon
 
 def makeFavs():
 	favPokemon = []
@@ -128,18 +130,14 @@ def makeFavs():
 
 	return(favPokemon)
 
-
 #If there is a save file load it
 if os.path.exists("save.ini"):
-	caughtPokemon = loadPkmn()
+	candy, caughtPokemon = loadPkmn()
 
 
 #To Do:
-#	Pokemon:
-#		Add Evolution
 
 #	Evolution:
-#		Add candy mechanism
 #		Add ability to level up pokemon
 
 #	Stats:
@@ -174,12 +172,15 @@ class App():
 		self.title.grid(column=0, row = 0, columnspan = maxGridCols)
 		self.title.config(anchor="center")
 
-		#Create Labels for the timer, catching, and the status of your catch
+		#Create Labels for the timer, catching, and the status of your catch, and candy
 		self.timerText = tk.Label(text="", bg=bgColor)
 		self.timerText.config(font=("Arial", 44))
 
 		self.catchText = tk.Label(text="", bg=bgColor)
 		self.catchStatusText = tk.Label(text="", bg=bgColor)
+
+		self.candyText = tk.Label(text="", bg=bgColor)
+		self.candyCounter =  tk.Label(text="You have {} candy".format(candy), bg=bgColor)
 
 		#Create the varible to set your timer time
 		self.timer_mins = tk.StringVar()
@@ -214,6 +215,9 @@ class App():
 		#Makes the buttons to Run Away (Return to main menu) and catch a pokemon
 		self.backButton = tk.Button(text='Run Away', command=self.MainPage, highlightbackground=bgColor)
 		self.catchButton = tk.Button(text='Catch!', command=self.catchPkmn, highlightbackground=bgColor)
+
+		#Make button to go to candy page
+		self.candyButton = tk.Button(text='Candy!', command=self.CandyPage, highlightbackground=bgColor)
 
 		#Create the button to go to the first box page
 		self.boxButton = tk.Button(text='Boxes', command=lambda: self.BoxesPage(0), highlightbackground=bgColor)
@@ -253,6 +257,10 @@ class App():
 		#Makes the found pokemon image so it can be removed on the Main page
 		pkmn_path = "Pokemon_Smile_Pokemon/{}.png".format("001")
 		self.pkmn_label = createImageLabels([pkmn_path],size)[0]
+
+		#Makes the candy image so it can be removed on the Main page
+		candy_path = "Pokemon_Smile_Envs/Candy.png"
+		self.candyLabel = createImageLabels([candy_path],size)[0]
 
 		#Make pokemon details so they can be removed
 		self.currentPkmn = createImageLabels(["Pokemon_Smile_Pokemon/{}.png".format("001")],size)[0]
@@ -306,6 +314,9 @@ class App():
 		#Make sure that the title spans the whole thing again
 		self.title.configure(text="Pokemon Timer")
 		self.title.grid(column=0, row = 0, columnspan = maxGridCols)
+
+		self.candyCounter.configure(text="You have {} candy".format(candy))
+		self.candyCounter.grid(column=2, row = 5, columnspan = 4)
 		
 		#Remove all the many things that are not on this page
 		self.envLabel.grid_forget()
@@ -317,6 +328,8 @@ class App():
 		self.restartButton.grid_forget()
 		self.pauseButton.grid_forget()
 		self.catchButton.grid_forget()
+		self.candyText.grid_forget()
+		self.candyLabel.grid_forget()
 
 		for im in self.boxImages:
 			im.grid_forget()
@@ -363,9 +376,50 @@ class App():
 		self.env_selector.grid_forget()
 		self.startButton.grid_forget()
 		self.boxButton.grid_forget()
+		self.candyCounter.grid_forget()
 
+	def CandyOrCatchPage(self):
+		self.catchButton.config(command=self.CatchPage)
+		self.catchButton.grid(column=4, row = 8, columnspan = 4)
+		self.catchButton.config(anchor="center")
+
+		#self.candyButton = tk.Button(text='Candy!', command=self.CandyPage, highlightbackground=bgColor)
+		self.candyButton.grid(column=0, row = 8, columnspan = 4)
+		self.candyButton.config(anchor="center")
+
+		#Remove all the many things that are not on this page
+		self.cancelButton.grid_forget()
+		self.restartButton.grid_forget()
+		self.pauseButton.grid_forget()
+
+	def CandyPage(self):
+		global candy
+
+		#Calculate the candy they get
+		candy_received = int( int(self.timer_mins.get()[0:2]) * 5)
+		candy += candy_received
+
+		savePkmn()
+
+		#Add Candy image
+		self.candyLabel.grid(column=0, row = 1, columnspan = maxGridCols)
+
+		#Show how many
+		self.candyText.configure(text = "You reveived {} candy!".format(candy_received))
+		self.candyText.grid(column=0, row = 2, columnspan = maxGridCols)
+
+		self.backButton.config(text = "Back")
+		self.backButton.grid(column=0, row = 3, columnspan = maxGridCols)
+
+		#Remove all the many things that are not on this page
+		self.timerText.grid_forget()
+		self.envLabel.grid_forget()
+		self.candyButton.grid_forget()
+		self.catchButton.grid_forget()
 
 	def CatchPage(self):
+		self.catchButton.config(command=self.catchPkmn)
+
 		#Get the environment name
 		env_name = self.explore_env.get()
 
@@ -396,6 +450,7 @@ class App():
 		self.catchButton.grid(column=int(maxGridCols/2), row = 3, columnspan = int(maxGridCols/2))
 
 		#Remove all the many things that are not on this page
+		self.candyButton.grid_forget()
 		self.timerText.grid_forget()
 		self.envLabel.grid_forget()
 		self.cancelButton.grid_forget()
@@ -474,6 +529,7 @@ class App():
 		self.favText.grid_forget()
 		self.dateText.grid_forget()
 		self.evolveButton.grid_forget()
+		self.candyCounter.grid_forget()
 
 		for im in self.imgLabels:
 			im.grid_forget()
@@ -582,7 +638,7 @@ class App():
 
 			#REMOVE IN FULL
 			if int(self.timer_mins.get()[0:2]) >= 0.5:
-				self.CatchPage()
+				self.CandyOrCatchPage()
 			else:
 				self.MainPage()
 
