@@ -92,6 +92,18 @@ def addToCaught(pkmn):
 									   today.strftime("%m/%d/%y"),
 									   pkmn.img))
 
+#Sets all the values to an evolved pokemon
+def evolvePkmn(pkmn):
+	print(core_pkmn_dict[pkmn.species].evolution)
+	print(choice(core_pkmn_dict[pkmn.species].evolution))
+	print(caughtPokemon.index(pkmn))
+
+	evolvedForm = core_pkmn_dict[choice(core_pkmn_dict[pkmn.species].evolution)]
+
+	pkmn.name = evolvedForm.species
+	pkmn.species = evolvedForm.species
+	pkmn.img = evolvedForm.img
+
 #Makes the save file	
 def savePkmn():
 	with open('save.ini', 'wb') as f:
@@ -210,6 +222,9 @@ class App():
 		# They start at 0 but need a placeholder here
 		self.boxBackButton = tk.Button(text='<', command=lambda: self.BoxesPage(0), highlightbackground=bgColor)
 		self.boxNextButton = tk.Button(text='>', command=lambda: self.BoxesPage(0), highlightbackground=bgColor)
+
+		#Make Pokemon evolution button
+		self.evolveButton = tk.Button(text='Evolve!', command=lambda: evolvePkmn(caughtPokemon[0]), highlightbackground=bgColor)
 
 		#Makes job for timer so it can be stopped
 		#Honestly it's funny how little of this is about the timer lol
@@ -458,11 +473,14 @@ class App():
 		self.currentBox.grid_forget()
 		self.favText.grid_forget()
 		self.dateText.grid_forget()
+		self.evolveButton.grid_forget()
 
 		for im in self.imgLabels:
 			im.grid_forget()
 		
 	def PokemonPage(self,pkmn,boxNum,*args):
+		print("Display Pokemon")
+		print(pkmn.name)
 		#Makes the back button go back to the box
 		self.boxBackButton.configure(text='<', command= lambda: self.BoxesPage(boxNum))
 		self.boxBackButton.grid(row = 0, column = 0)
@@ -499,6 +517,12 @@ class App():
 		self.dateText.config(text="Date Caught: {}".format(pkmn.caughtDate))
 		self.dateText.grid(row = 4, column = 5, columnspan=4, sticky="w")
 
+		#Add evolution button
+		if core_pkmn_dict[pkmn.species].evolution[0]:
+			self.evolveButton.config(command=partial(self.EvolvePokemon, pkmn, boxNum))
+			self.evolveButton.grid(row = 7, column = 0, columnspan=8)
+			self.evolveButton.config(anchor="center")
+
 		#Remove all the many things that are not on this page
 		self.boxNextButton.grid_forget()
 		self.backButton.grid_forget()
@@ -510,6 +534,26 @@ class App():
 
 		for im in self.boxOutImages:
 			im.grid_forget()
+
+	def EvolvePokemon(self,pkmn,boxNum,*args):
+		#Evolve the pokemon
+		evolvePkmn(pkmn)
+
+		#Save the new pokemon
+		savePkmn()
+
+		#Resort the lists
+		self.makeSortedPkmn()
+
+		#Remove the current box
+		self.currentPkmn.grid_forget()
+		self.currentBox.grid_forget()
+		self.favText.grid_forget()
+		self.dateText.grid_forget()
+		self.evolveButton.grid_forget()
+
+		#Remake the box
+		self.PokemonPage(pkmn,boxNum)
 
 	#Cancels the current timer
 	def cancel(self):
