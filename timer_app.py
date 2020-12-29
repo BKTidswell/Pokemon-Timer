@@ -94,17 +94,22 @@ def addToCaught(pkmn):
 
 #Sets all the values to an evolved pokemon
 def evolvePkmn(pkmn):
-	print(core_pkmn_dict[pkmn.species].evolution)
-	print(choice(core_pkmn_dict[pkmn.species].evolution))
-	print(caughtPokemon.index(pkmn))
-
+	#Get the data from one of the random evolved forms
+	#The random choice is only so I can do eevee
+	#	Now that is thinking ahead! Otherwise idk how I would do that
 	evolvedForm = core_pkmn_dict[choice(core_pkmn_dict[pkmn.species].evolution)]
 
 	pkmn.name = evolvedForm.species
 	pkmn.species = evolvedForm.species
+	pkmn.can_evolve = False
 	pkmn.img = evolvedForm.img
 
+
 def lvlUpPkmn(pkmn):
+	pkmn.level += 1
+
+	if core_pkmn_dict[pkmn.species].evolution[0] and pkmn.level >= core_pkmn_dict[pkmn.species].evolution_lvl:
+		pkmn.can_evolve = True
 
 #Makes the save file	
 def savePkmn():
@@ -229,6 +234,9 @@ class App():
 
 		#Make Pokemon evolution button
 		self.evolveButton = tk.Button(text='Evolve!', command=lambda: evolvePkmn(caughtPokemon[0]), highlightbackground=bgColor)
+
+		#Make level up button
+		self.levelUpButton = tk.Button(text='Level Up!', command=lambda: lvlUpPkmn(caughtPokemon[0]), highlightbackground=bgColor)
 
 		#Makes job for timer so it can be stopped
 		#Honestly it's funny how little of this is about the timer lol
@@ -530,13 +538,12 @@ class App():
 		self.dateText.grid_forget()
 		self.evolveButton.grid_forget()
 		self.candyCounter.grid_forget()
+		self.levelUpButton.grid_forget()
 
 		for im in self.imgLabels:
 			im.grid_forget()
 		
 	def PokemonPage(self,pkmn,boxNum,*args):
-		print("Display Pokemon")
-		print(pkmn.name)
 		#Makes the back button go back to the box
 		self.boxBackButton.configure(text='<', command= lambda: self.BoxesPage(boxNum))
 		self.boxBackButton.grid(row = 0, column = 0)
@@ -574,10 +581,21 @@ class App():
 		self.dateText.grid(row = 4, column = 5, columnspan=4, sticky="w")
 
 		#Add evolution button
-		if core_pkmn_dict[pkmn.species].evolution[0]:
+		#Only show when level is high enough and can evolve
+		# I want to use the flag but we'll see after I add leveling
+		if pkmn.can_evolve:
 			self.evolveButton.config(command=partial(self.EvolvePokemon, pkmn, boxNum))
-			self.evolveButton.grid(row = 7, column = 0, columnspan=8)
+			self.evolveButton.grid(row = 7, column = 4, columnspan=4)
 			self.evolveButton.config(anchor="center")
+
+		#Add ability to level up if less than 100:
+		if pkmn.level < 100 and candy > 0:
+			self.levelUpButton.config(command=partial(self.LevelUpPokemon, pkmn, boxNum))
+			self.levelUpButton.grid(row = 7, column = 0, columnspan=4)
+			self.levelUpButton.config(anchor="center")
+
+		self.candyCounter.configure(text="You have {} candy".format(candy))
+		self.candyCounter.grid(column=0, row = 8, columnspan = 8)
 
 		#Remove all the many things that are not on this page
 		self.boxNextButton.grid_forget()
@@ -594,6 +612,30 @@ class App():
 	def EvolvePokemon(self,pkmn,boxNum,*args):
 		#Evolve the pokemon
 		evolvePkmn(pkmn)
+
+		#Save the new pokemon
+		savePkmn()
+
+		#Resort the lists
+		self.makeSortedPkmn()
+
+		#Remove the current box
+		self.currentPkmn.grid_forget()
+		self.currentBox.grid_forget()
+		self.favText.grid_forget()
+		self.dateText.grid_forget()
+		self.evolveButton.grid_forget()
+
+		#Remake the box
+		self.PokemonPage(pkmn,boxNum)
+
+	def LevelUpPokemon(self,pkmn,boxNum,*args):
+		global candy
+
+		#Evolve the pokemon
+		lvlUpPkmn(pkmn)
+
+		candy -= 1
 
 		#Save the new pokemon
 		savePkmn()
