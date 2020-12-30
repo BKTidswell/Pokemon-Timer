@@ -723,7 +723,7 @@ class App():
 		self.TimerPage() 
 
 		#Now is seconds not minutes
-		self.update_clock(int(self.timer_mins.get()[0:2]) * 1)
+		self.update_clock(int(self.timer_mins.get()[0:2]) * 60)
 
 	def PauseTimer(self):
 		self.paused = not self.paused
