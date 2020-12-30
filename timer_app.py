@@ -712,7 +712,7 @@ class App():
 				self._job = self.root.after(1000, self.update_clock, timer_seconds-1)
 		else:
 			#Only Long Timers get to catch, not in testing tho
-			if int(self.timer_mins.get()[0:2]) >= 1:
+			if int(self.timer_mins.get()[0:2]) >= 15:
 				self.CandyOrCatchPage()
 			else:
 				self.MainPage()
