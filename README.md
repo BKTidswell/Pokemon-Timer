@@ -1,11 +1,5 @@
 # Pokemon-Timer
-
-![Pikachu](https://raw.githubusercontent.com/BKTidswell/Pokemon-Timer/main/Pokemon_Smile_Pokemon/025.png) ![Bulbasaur](https://raw.githubusercontent.com/BKTidswell/Pokemon-Timer/main/Pokemon_Smile_Pokemon/001.png) ![Charmander](https://raw.githubusercontent.com/BKTidswell/Pokemon-Timer/main/Pokemon_Smile_Pokemon/004.png) ![Squirtle](https://raw.githubusercontent.com/BKTidswell/Pokemon-Timer/main/Pokemon_Smile_Pokemon/007.png)
-
-<img src="https://raw.githubusercontent.com/BKTidswell/Pokemon-Timer/main/Pokemon_Smile_Pokemon/025.png" width="100" height="100"/>
-<img src="https://raw.githubusercontent.com/BKTidswell/Pokemon-Timer/main/Pokemon_Smile_Pokemon/001.png" width="100" height="100"/>
-<img src="https://raw.githubusercontent.com/BKTidswell/Pokemon-Timer/main/Pokemon_Smile_Pokemon/004.png" width="100" height="100"/>
-<img src="https://raw.githubusercontent.com/BKTidswell/Pokemon-Timer/main/Pokemon_Smile_Pokemon/007.png" width="100" height="100"/>
+<img src="https://raw.githubusercontent.com/BKTidswell/Pokemon-Timer/main/Pokemon_Smile_Pokemon/025.png" width="250" height="250"/><img src="https://raw.githubusercontent.com/BKTidswell/Pokemon-Timer/main/Pokemon_Smile_Pokemon/001.png" width="250" height="250"/><img src="https://raw.githubusercontent.com/BKTidswell/Pokemon-Timer/main/Pokemon_Smile_Pokemon/004.png" width="250" height="250"/><img src="https://raw.githubusercontent.com/BKTidswell/Pokemon-Timer/main/Pokemon_Smile_Pokemon/007.png" width="250" height="250"/>
 
 
 ## How it works
