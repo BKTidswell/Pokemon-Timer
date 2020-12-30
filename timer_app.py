@@ -2,13 +2,20 @@
 import tkinter as tk
 from random import *
 from PIL import Image, ImageTk
-import time, os, sys
+import time, os, sys, math
 from pkmn_library import *
 import pickle
 from functools import partial
 from datetime import date
-import os
-from playsound import playsound
+from tkinter import messagebox
+
+#Set up to get files even in app
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+	bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
+else:
+	bundle_dir = os.path.abspath(os.path.dirname(__file__))
+
+save_path = os.path.abspath(os.path.join(bundle_dir, 'save.ini'))
 
 timer = "{m}:{s}"
 
@@ -27,11 +34,11 @@ timer_options = [
 #Places where you can go to find pokemon
 env_options = [
 "Beach",
-#"Cave",
-#"Field",
+"Cave",
+"Field",
 "Forest",
-#"Mountain",
-#"Town",
+"Mountain",
+"Town",
 "Volcano",
 ]
 
@@ -73,7 +80,8 @@ def createImageLabels(imagePaths,imSize):
 
 	#Most of this is just taken from a tutorial online
 	for i,im in enumerate(imagePaths):
-		images.append(Image.open(im))
+		imPath = os.path.abspath(os.path.join(bundle_dir, im))
+		images.append(Image.open(imPath))
 		images[i].thumbnail(imSize,Image.ANTIALIAS)
 		photos.append(ImageTk.PhotoImage(images[i]))
 		imageLabels.append(tk.Label(image = photos[i], bg=bgColor))
@@ -113,16 +121,16 @@ def lvlUpPkmn(pkmn):
 
 #Makes the save file	
 def savePkmn():
-	with open('save.ini', 'wb') as f:
+	with open(save_path, 'wb') as f:
 		pickle.dump([candy, caughtPokemon], f, protocol=2)
 
 #loads the save file
 def loadPkmn():
-	with open('save.ini', 'rb') as f:
+	with open(save_path, 'rb') as f:
 		try:
 			candy, caughtPokemon = pickle.load(f)
 		except EOFError:
-			candy, caughtPokemon = []
+			candy, caughtPokemon = 0, []
 		
 	return candy, caughtPokemon
 
@@ -135,20 +143,16 @@ def makeFavs():
 
 	return(favPokemon)
 
-#If there is a save file load it
-if os.path.exists("save.ini"):
-	candy, caughtPokemon = loadPkmn()
-
 
 #To Do:
-
-#	Evolution:
-#		Add ability to level up pokemon
-
 #	Stats:
 #		Save timer runs to CSV
 #		Add stats page
 #		Add export stats ability
+
+#If there is a save file load it
+if os.path.exists(save_path):
+	candy, caughtPokemon = loadPkmn()
 
 
 class App():
@@ -237,6 +241,9 @@ class App():
 
 		#Make level up button
 		self.levelUpButton = tk.Button(text='Level Up!', command=lambda: lvlUpPkmn(caughtPokemon[0]), highlightbackground=bgColor)
+
+		#Make release pokemon button
+		self.releasepButton = tk.Button(text='Release', command=lambda: self.ReleasePokemon(caughtPokemon[0]), highlightbackground=bgColor)
 
 		#Makes job for timer so it can be stopped
 		#Honestly it's funny how little of this is about the timer lol
@@ -387,6 +394,8 @@ class App():
 		self.candyCounter.grid_forget()
 
 	def CandyOrCatchPage(self):
+		self.timerText.configure(text="Timer Done!")
+
 		self.catchButton.config(command=self.CatchPage)
 		self.catchButton.grid(column=4, row = 8, columnspan = 4)
 		self.catchButton.config(anchor="center")
@@ -404,7 +413,7 @@ class App():
 		global candy
 
 		#Calculate the candy they get
-		candy_received = int( int(self.timer_mins.get()[0:2]) * 5)
+		candy_received = int( math.ceil( int(self.timer_mins.get()[0:2]) / 5) )
 		candy += candy_received
 
 		savePkmn()
@@ -426,6 +435,11 @@ class App():
 		self.catchButton.grid_forget()
 
 	def CatchPage(self):
+		#They still get 1 candy each time even if they catch
+		global candy
+
+		candy += 1
+
 		self.catchButton.config(command=self.catchPkmn)
 
 		#Get the environment name
@@ -539,6 +553,7 @@ class App():
 		self.evolveButton.grid_forget()
 		self.candyCounter.grid_forget()
 		self.levelUpButton.grid_forget()
+		self.releasepButton.grid_forget()
 
 		for im in self.imgLabels:
 			im.grid_forget()
@@ -591,11 +606,17 @@ class App():
 		#Add ability to level up if less than 100:
 		if pkmn.level < 100 and candy > 0:
 			self.levelUpButton.config(command=partial(self.LevelUpPokemon, pkmn, boxNum))
-			self.levelUpButton.grid(row = 7, column = 0, columnspan=4)
+			self.levelUpButton.grid(row = 7, column = 1, columnspan=3)
 			self.levelUpButton.config(anchor="center")
 
+		#Add removal button
+		self.releasepButton.config(command=partial(self.ReleasePokemon, pkmn, boxNum))
+		self.releasepButton.grid(row = 0, column = 8)
+		self.releasepButton.config(anchor="center")
+
+		#Change candy counter
 		self.candyCounter.configure(text="You have {} candy".format(candy))
-		self.candyCounter.grid(column=0, row = 8, columnspan = 8)
+		self.candyCounter.grid(column=4, row = 8, columnspan = 2)
 
 		#Remove all the many things that are not on this page
 		self.boxNextButton.grid_forget()
@@ -653,6 +674,22 @@ class App():
 		#Remake the box
 		self.PokemonPage(pkmn,boxNum)
 
+	def ReleasePokemon(self,pkmn,boxNum,*args):
+		global candy
+
+		result = messagebox.askquestion("Release", "Are sure you want to release this pokemon?", icon='warning')
+
+		if result == 'yes':
+			candy += math.ceil(pkmn.level/5)
+
+			caughtPokemon.remove(pkmn)
+
+			savePkmn()
+			self.makeSortedPkmn()
+
+			self.BoxesPage(boxNum)
+
+
 	#Cancels the current timer
 	def cancel(self):
 		if self._job is not None:
@@ -672,14 +709,10 @@ class App():
 			if self.paused:
 				self._job = self.root.after(1000, self.update_clock, timer_seconds)
 			else:
-			 	self._job = self.root.after(1000, self.update_clock, timer_seconds-1)
+				self._job = self.root.after(1000, self.update_clock, timer_seconds-1)
 		else:
-			playsound('chime.mp3')
-
 			#Only Long Timers get to catch, not in testing tho
-
-			#REMOVE IN FULL
-			if int(self.timer_mins.get()[0:2]) >= 0.5:
+			if int(self.timer_mins.get()[0:2]) >= 1:
 				self.CandyOrCatchPage()
 			else:
 				self.MainPage()
@@ -690,8 +723,7 @@ class App():
 		self.TimerPage() 
 
 		#Now is seconds not minutes
-		#REMOVE IN FULL
-		self.update_clock(int(self.timer_mins.get()[0:2]))
+		self.update_clock(int(self.timer_mins.get()[0:2]) * 1)
 
 	def PauseTimer(self):
 		self.paused = not self.paused
@@ -732,8 +764,7 @@ class App():
 	def catchPkmn(self):
 		#If you get a value under their catch rate
 
-		#REMOVE IN FULL
-		if True: #randint(0,100) - int(self.timer_mins.get()[0:2]) < self.pkmn_found_class.catch_rate:
+		if True: #min(randint(0,100),randint(0,100)) - int(self.timer_mins.get()[0:2]) < self.pkmn_found_class.catch_rate:
 			#Say that they caught it, add it to caught list, and then save it
 			self.catchText.configure(text="You caught the {}!".format(self.pkmn_found_class.species))
 			addToCaught(self.pkmn_found_class)

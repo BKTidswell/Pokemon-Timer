@@ -4,7 +4,8 @@ block_cipher = None
 
 added_files = [("Pokemon_Smile_Envs/*","Pokemon_Smile_Envs"),
                ("Pokemon_Smile_Pokemon/*","Pokemon_Smile_Pokemon"),
-               ("save.ini",".")]
+               ("save.ini","."),
+               ("chime.mp3",".")]
 
 a = Analysis(['timer_app.py'],
              pathex=['/Users/Ben/Desktop/Pokemon-Timer'],

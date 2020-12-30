@@ -1,0 +1,19 @@
+
+Pikachu -> Riachu: lvl 25
+Nidorina -> Nidoqueen: lvl 36
+Nidorino -> Nidoking: lvl 36
+Clefairy -> Clefable: lvl 35
+Vulpix -> Ninetales: lvl 35
+Jigglypuff -> Wigglytuff: lvl 35
+Gloom -> Vileplume: lvl 40
+Growlithe -> Arcanine: lvl 35
+Poliwhirl -> Poliwrath: lvl 40
+Kadabra -> Alakazam: lvl 40
+Machoke -> Machamp: lvl 40
+Weepinbell -> Victreebel: lvl 35
+Graveler -> Golem: lvl 40
+Shellder -> Cloyster: lvl 35
+Haunter -> Gengar: lvl 40
+Exeggcute -> Exeggutor: lvl 35
+Staryu -> Starmie: lvl 35
+Eevee -> Vaporeon, Jolteon, Flareon : lvl 30
