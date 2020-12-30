@@ -1,5 +1,7 @@
 # Pokemon-Timer
 
+![Pikachu](https://github.com/BKTidswell/Pokemon-Timer/blob/master/Pokemon_Smile_Pokemon/025.png?raw=true)
+
 ## How it works
 This is a timer app that will allow you to collect and catch Pokemon. Completing any timer session of at least 15 minutes will allow you to receive candy or catch a Pokemon. Before starting a timer you can select a location which will change the Pokemon you are able to catch. 
 
