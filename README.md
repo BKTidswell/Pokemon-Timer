@@ -1,6 +1,6 @@
 # Pokemon-Timer
 
-![Pikachu](https://raw.githubusercontent.com/BKTidswell/Pokemon-Timer/main/Pokemon_Smile_Pokemon/025.png =100x100) ![Bulbasaur](https://raw.githubusercontent.com/BKTidswell/Pokemon-Timer/main/Pokemon_Smile_Pokemon/001.png =100x100) ![Charmander](https://raw.githubusercontent.com/BKTidswell/Pokemon-Timer/main/Pokemon_Smile_Pokemon/004.png =100x100) ![Squirtle](https://raw.githubusercontent.com/BKTidswell/Pokemon-Timer/main/Pokemon_Smile_Pokemon/007.png =100x100)
+![Pikachu](https://raw.githubusercontent.com/BKTidswell/Pokemon-Timer/main/Pokemon_Smile_Pokemon/025.png) ![Bulbasaur](https://raw.githubusercontent.com/BKTidswell/Pokemon-Timer/main/Pokemon_Smile_Pokemon/001.png) ![Charmander](https://raw.githubusercontent.com/BKTidswell/Pokemon-Timer/main/Pokemon_Smile_Pokemon/004.png) ![Squirtle](https://raw.githubusercontent.com/BKTidswell/Pokemon-Timer/main/Pokemon_Smile_Pokemon/007.png)
 
 ## How it works
 This is a timer app that will allow you to collect and catch Pokemon. Completing any timer session of at least 15 minutes will allow you to receive candy or catch a Pokemon. Before starting a timer you can select a location which will change the Pokemon you are able to catch. 
