@@ -49,3 +49,8 @@ Pokemon that can only evolve through trade evolution or stone are given levels t
 ## Troubleshooting
 * On windows, make sure that the save.ini file is with Pokemon Timer, and that Pokemon Timer has permissions to write to files
 * On Mac, you will need to go into "Security and Privacy" to run the app as it is not approved by Apple. You may also need to set the "Sharing and Permissions" of the app (in the "Get Info" menu after you right click) so that all parties have read and write access in order for it to properly save Pokemon. 
+
+## Future Updates
+* Allow you to get a reward after completing 15 minutes of a longer timer
+* Save and show the amount of sessions you hve done, total time worked, pokemon caught etc.
+* Export a list of sessions as a CSV
