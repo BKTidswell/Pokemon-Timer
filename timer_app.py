@@ -8,6 +8,7 @@ import pickle
 from functools import partial
 from datetime import date
 from tkinter import messagebox
+import platform
 
 #Set up to get files even in app
 if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
@@ -15,7 +16,10 @@ if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
 else:
 	bundle_dir = os.path.abspath(os.path.dirname(__file__))
 
-save_path = os.path.abspath(os.path.join(bundle_dir, 'save.ini'))
+if platform.system() == "Windows":
+	save_path = os.path.abspath(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'save.ini'))
+else:
+	save_path = os.path.abspath(os.path.join(bundle_dir, 'save.ini'))
 
 timer = "{m}:{s}"
 
@@ -37,7 +41,6 @@ env_options = [
 "Cave",
 "Field",
 "Forest",
-"Mountain",
 "Town",
 "Volcano",
 ]
@@ -153,6 +156,14 @@ def makeFavs():
 #If there is a save file load it
 if os.path.exists(save_path):
 	candy, caughtPokemon = loadPkmn()
+
+
+if os.path.exists("test.txt"):
+	rewardMin = 1
+	timeMulti = 1
+else:
+	rewardMin = 15
+	timeMulti = 60
 
 
 class App():
@@ -608,6 +619,9 @@ class App():
 			self.levelUpButton.config(command=partial(self.LevelUpPokemon, pkmn, boxNum))
 			self.levelUpButton.grid(row = 7, column = 1, columnspan=3)
 			self.levelUpButton.config(anchor="center")
+		else:
+			self.levelUpButton.grid_forget()
+			self.candyCounter.grid_forget()
 
 		#Add removal button
 		self.releasepButton.config(command=partial(self.ReleasePokemon, pkmn, boxNum))
@@ -616,7 +630,7 @@ class App():
 
 		#Change candy counter
 		self.candyCounter.configure(text="You have {} candy".format(candy))
-		self.candyCounter.grid(column=4, row = 8, columnspan = 2)
+		self.candyCounter.grid(column=4, row = 8, columnspan = 8)
 
 		#Remove all the many things that are not on this page
 		self.boxNextButton.grid_forget()
@@ -712,7 +726,7 @@ class App():
 				self._job = self.root.after(1000, self.update_clock, timer_seconds-1)
 		else:
 			#Only Long Timers get to catch, not in testing tho
-			if int(self.timer_mins.get()[0:2]) >= 15:
+			if int(self.timer_mins.get()[0:2]) >= rewardMin:
 				self.CandyOrCatchPage()
 			else:
 				self.MainPage()
@@ -723,7 +737,7 @@ class App():
 		self.TimerPage() 
 
 		#Now is seconds not minutes
-		self.update_clock(int(self.timer_mins.get()[0:2]) * 60)
+		self.update_clock(int(self.timer_mins.get()[0:2]) * timeMulti)
 
 	def PauseTimer(self):
 		self.paused = not self.paused
