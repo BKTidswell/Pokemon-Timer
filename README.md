@@ -46,3 +46,12 @@ Pokemon evolve at their usual levels with changes just for pokemon that evolve a
 * Staryu -> Starmie: lvl 35
 * Eevee -> Vaporeon, Jolteon, Flareon : lvl 30
 
+## Troubleshooting
+* On Windows, make sure that the save.ini file is with Pokemon Timer, and that Pokemon Timer has permissions to write to files
+* On Mac, you will need to go into "Security and Privacy" to run the app as it is not approved by Apple. You may also need to set the "Sharing and Permissions" of the app (in the "Get Info" menu after you right click) so that all parties have read and write access in order for it to properly save Pokemon.
+
+## Future Updates
+* Get a reward after completing 15 minutes of a longer timer
+* Save and show the amount of sessions you have done, total time worked, Pokemon caught etc.
+* Export a list of sessions as a CSV
+
