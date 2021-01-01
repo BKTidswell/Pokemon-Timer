@@ -2,3 +2,4 @@ Releases/
 __pycache__/
 test.txt
 025.icns
+.gitignore
