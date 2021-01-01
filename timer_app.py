@@ -18,8 +18,13 @@ else:
 
 if platform.system() == "Windows":
 	save_path = os.path.abspath(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'save.ini'))
+	test_path = os.path.abspath(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'test.txt'))
 else:
-	save_path = os.path.abspath(os.path.join(bundle_dir, 'save.ini'))
+	save_path = os.path.abspath('/Applications/Pokemon_Timer/save.ini')
+	test_path = os.path.abspath('/Applications/Pokemon_Timer/test.txt')
+
+	if not os.path.exists(os.path.abspath('/Applications/Pokemon_Timer')):
+		os.mkdir(os.path.abspath('/Applications/Pokemon_Timer')) 
 
 timer = "{m}:{s}"
 
@@ -158,7 +163,7 @@ if os.path.exists(save_path):
 	candy, caughtPokemon = loadPkmn()
 
 
-if os.path.exists("test.txt"):
+if os.path.exists(test_path):
 	rewardMin = 1
 	timeMulti = 1
 else:
