@@ -55,6 +55,8 @@ Pokemon evolve at their usual levels with changes just for pokemon that evolve a
 * Save and show the amount of sessions you have done, total time worked, Pokemon caught etc.
 * Export a list of sessions as a CSV
 
+Pokemon | Location | Encounter %
+--- | --- | ---
 Bulbasaur | Forest | 2.475%
 Ivysaur | Forest | 0.99%
 Venusaur | Forest | 0.99%
